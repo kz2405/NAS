@@ -47,7 +47,7 @@ class QValues:
                                 #    stride = row[4],
                                 #    image_size = row[5],
                                    units = row[2],
-                                   activation = row[3],
+                                   activation = row[3] if not pd.isnull(row[3])  else None,
                                    proba = row[4],
                                    fc_depth = row[5],
                                    fc_size = row[6],
@@ -60,7 +60,7 @@ class QValues:
                                 #  stride = row[12],
                                 #  image_size = row[13],
                                  units = row[11],
-                                 activation = row[12],
+                                 activation = row[12] if not pd.isnull(row[12])  else None,
                                  proba = row[13],
                                  fc_depth = row[14],
                                  fc_size = row[15],
@@ -265,7 +265,7 @@ class QLearner:
             min_q_value = min(action_values['utilities'])
             min_q_indexes = [i for i in range(len(action_values['actions'])) if action_values['utilities'][i]==min_q_value]
             min_actions = [action_values['actions'][i] for i in min_q_indexes]
-            action = se.State(state_list=max_actions[np.random.randint(len(min_actions))])
+            action = se.State(state_list=min_actions[np.random.randint(len(min_actions))])
 
         self.state = self.enum.state_action_transition(self.state, action)
         #self.bucketed_state = self.enum.bucket_state(self.state)

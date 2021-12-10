@@ -116,7 +116,8 @@ class NAS():
                 self.q_training_step += 1
                 self.incorporate_trained_net(net,
                                              acc_best_val,
-                                             self.epsilon)
+                                             self.epsilon, 
+                                             self.q_training_step)
                 return self.generate_new_netork()
             else:
                 self.q_training_step += 1
