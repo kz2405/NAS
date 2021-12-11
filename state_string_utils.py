@@ -71,6 +71,10 @@ class StateStringUtils:
         #     return 'P(%i,%i)' % (state.filter_size, state.stride)
         elif state.layer_type == 'lstm':
             return 'LSTM(%i,%s)' % (state.units, state.activation)
+        elif state.layer_type == 'rnn':
+            return 'RNN(%i,%s)' % (state.units, state.activation)
+        elif state.layer_type == 'gru':
+            return 'GRU(%i,%s)' % (state.units, state.activation)
         elif state.layer_type == 'fc':
             return 'FC(%i, %s)' % (state.fc_size, state.activation)
         elif state.layer_type == 'dropout':
@@ -88,6 +92,34 @@ class StateStringUtils:
         for layer in parsed_list:
             if layer[0] == 'lstm':
                 states.append(se.State(layer_type='lstm',
+                                    layer_depth=states[-1].layer_depth + 1,
+                                    # filter_depth=layer[1],
+                                    # filter_size=layer[2],
+                                    # stride=layer[3],
+                                    # image_size=states[-1].image_size,
+                                    units=layer[1],
+                                    activation=layer[2],
+                                    proba=0,
+                                    fc_depth=states[-1].fc_depth,
+                                    fc_size=0,
+                                    fc_occured = fc_occur,
+                                    terminate=0))
+            elif layer[0] == 'rnn':
+                states.append(se.State(layer_type='rnn',
+                                    layer_depth=states[-1].layer_depth + 1,
+                                    # filter_depth=layer[1],
+                                    # filter_size=layer[2],
+                                    # stride=layer[3],
+                                    # image_size=states[-1].image_size,
+                                    units=layer[1],
+                                    activation=layer[2],
+                                    proba=0,
+                                    fc_depth=states[-1].fc_depth,
+                                    fc_size=0,
+                                    fc_occured = fc_occur,
+                                    terminate=0))
+            elif layer[0] == 'gru':
+                states.append(se.State(layer_type='gru',
                                     layer_depth=states[-1].layer_depth + 1,
                                     # filter_depth=layer[1],
                                     # filter_size=layer[2],

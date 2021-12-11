@@ -5,6 +5,7 @@ allow_consecutive_dropout = False
 possible_proba = [0.1, 0.2, 0.3, 0.4, 0.5] #search space for dropout rate
 possible_actvf = ['tanh','sigmoid','relu','leaky_relu','linear'] #search space for activation functions
 possible_units = [100, 150, 200]
+possible_celltypes = ['lstm', 'rnn', 'gru']
 possible_fc_sizes = [50, 100, 200]  
 init_utility = 0.5
 batch_norm = False    

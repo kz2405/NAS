@@ -124,9 +124,10 @@ class StateEnumerator:
         '''
         actions = []
         if state.layer_depth == 0:
-            for unit in self.ssp.possible_units:
-                        for activ_func in self.ssp.possible_actvf:
-                            actions += [State(layer_type='lstm',
+            for celltype in self.ssp.possible_celltypes:
+                for unit in self.ssp.possible_units:
+                    for activ_func in self.ssp.possible_actvf:
+                            actions += [State(layer_type=celltype,
                                                 layer_depth=state.layer_depth + 1,
 #                                                 filter_depth=depth,
 #                                                 filter_size=filt,
@@ -177,10 +178,11 @@ class StateEnumerator:
 
                 # (modified as below) 
                 # lstm states -- iterate through all possible units (number of neurons on the layer), activation
-                if (state.layer_type in ['start', 'lstm', 'dropout']) and state.fc_occured == 0: # these layers can all go to lstm layer next
-                    for unit in self.ssp.possible_units:
-                        for activ_func in self.ssp.possible_actvf:
-                            actions += [State(layer_type='lstm',
+                if (state.layer_type in ['start', 'lstm', 'rnn', 'gru', 'dropout']) and state.fc_occured == 0: # these layers can all go to lstm layer next
+                    for celltype in self.ssp.possible_celltypes:
+                        for unit in self.ssp.possible_units:
+                            for activ_func in self.ssp.possible_actvf:
+                                actions += [State(layer_type=celltype,
                                                 layer_depth=state.layer_depth + 1,
 #                                                 filter_depth=depth,
 #                                                 filter_size=filt,
@@ -223,7 +225,7 @@ class StateEnumerator:
 # I commented the blocks above out because we don't need pooling for LSTM here; thus we don't need a gap or pool layer for now.
 
                 # dropout states -- iterate through all possible dropout rates (modified the original comment)
-                if (state.layer_type in ['lstm', 'fc'] or (state.layer_type == 'dropout' and self.ssp.allow_consecutive_dropout)): 
+                if (state.layer_type in ['lstm', 'gru', 'rnn','fc'] or (state.layer_type == 'dropout' and self.ssp.allow_consecutive_dropout)): 
                     #or(state.layer_type == 'start' and self.ssp.allow_initial_pooling)): 
                     #commented the line above out since we don't do initial dropout at the start?
                     #do we need a layer type called 'start'?
@@ -261,7 +263,7 @@ class StateEnumerator:
 # Instead, the new code is as below:
 
                 # FC States -- iterate through all possible fc sizes
-                if state.layer_type in ['start','fc','dropout','lstm'] and state.fc_depth < self.ssp.max_fc - 1: #modified
+                if state.layer_type in ['start','fc','dropout','lstm', 'rnn', 'gru'] and state.fc_depth < self.ssp.max_fc - 1: #modified
                     for fc_sizes in self._possible_fc_size(state):
                         for activ_func in self.ssp.possible_actvf:
                             actions += [State(layer_type='fc',

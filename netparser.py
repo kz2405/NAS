@@ -18,6 +18,8 @@ class NetScanner(runtime.Scanner):
         # ('POOL', re.compile('P')),
         ('SPLIT', re.compile('S')),
         ('LSTM', re.compile('LSTM')),
+        ('RNN', re.compile('RNN')),
+        ('GRU', re.compile('GRU')),
         ('FC', re.compile('FC')),
         ('DROP', re.compile('D')),
         # ('GLOBALAVE', re.compile('GAP')),
@@ -34,10 +36,16 @@ class NetGenerating(runtime.Parser):
     def layers(self, _parent=None):
         _context = self.Context(_parent, self._scanner, 'layers', [])
        # _token = self._peek('CONV', 'NIN', 'GLOBALAVE', 'BATCHNORM', 'POOL', 'SPLIT', 'FC', 'DROP', 'SOFTMAX', context=_context)
-        _token = self._peek('LSTM', 'FC', 'DROP', 'SOFTMAX', 'SPLIT', context=_context)     
+        _token = self._peek('LSTM', 'RNN', 'GRU', 'FC', 'DROP', 'SOFTMAX', 'SPLIT', context=_context)     
         if _token == 'LSTM':
             ls = self.lstm(_context)
             return ls
+        if _token == 'RNN':
+            rnn = self.rnn(_context)
+            return rnn
+        if _token == 'GRU':
+            gru = self.gru(_context)
+            return gru
         #if _token == 'CONV':
         #    conv = self.conv(_context)
         #    return conv
@@ -102,6 +110,20 @@ class NetGenerating(runtime.Parser):
         _context = self.Context(_parent, self._scanner, 'lstm', [])
         LSTM = self._scan('LSTM', context=_context)
         result = ['lstm']
+        numlist = self.numlist(_context)
+        return result + numlist
+    
+    def rnn(self, _parent=None):
+        _context = self.Context(_parent, self._scanner, 'rnn', [])
+        RNN = self._scan('RNN', context=_context)
+        result = ['rnn']
+        numlist = self.numlist(_context)
+        return result + numlist
+    
+    def gru(self, _parent=None):
+        _context = self.Context(_parent, self._scanner, 'gru', [])
+        LSTM = self._scan('GRU', context=_context)
+        result = ['gru']
         numlist = self.numlist(_context)
         return result + numlist
     
@@ -176,6 +198,10 @@ def parse(rule, text):
 def caffe_to_keras(layer, rs = False):
     if layer[0] == "lstm":
         return keras.layers.LSTM(int(layer[1]), activation = layer[2], return_sequences = rs)
+    if layer[0] == "rnn":
+        return keras.layers.SimpleRNN(int(layer[1]), activation = layer[2], return_sequences = rs)
+    if layer[0] == "gru":
+        return keras.layers.GRU(int(layer[1]), activation = layer[2], return_sequences = rs)
     #if layer[0] == 'conv':
     #    if first:
     #        return keras.layers.Conv2D(
@@ -213,7 +239,7 @@ def parse_network_structure(net):
     structure = []
     rs = False
     for layer_dict in net[::-1]:
-        if layer_dict[0] == 'lstm':
+        if layer_dict[0] in ['lstm', 'rnn','gru']:
             rs = True
         new_layer =caffe_to_keras(layer_dict, rs)
 #        if layer_dict[0] in ["softmax", "fc"]:
