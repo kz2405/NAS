@@ -18,6 +18,7 @@ class NetScanner(runtime.Scanner):
         # ('POOL', re.compile('P')),
         ('SPLIT', re.compile('S')),
         ('LSTM', re.compile('LSTM')),
+        ('BILSTM', re.compile('BILSTM')),
         ('RNN', re.compile('RNN')),
         ('GRU', re.compile('GRU')),
         ('FC', re.compile('FC')),
@@ -36,10 +37,13 @@ class NetGenerating(runtime.Parser):
     def layers(self, _parent=None):
         _context = self.Context(_parent, self._scanner, 'layers', [])
        # _token = self._peek('CONV', 'NIN', 'GLOBALAVE', 'BATCHNORM', 'POOL', 'SPLIT', 'FC', 'DROP', 'SOFTMAX', context=_context)
-        _token = self._peek('LSTM', 'RNN', 'GRU', 'FC', 'DROP', 'SOFTMAX', 'SPLIT', context=_context)     
+        _token = self._peek('LSTM', 'BILSTM', 'RNN', 'GRU', 'FC', 'DROP', 'SOFTMAX', 'SPLIT', context=_context)     
         if _token == 'LSTM':
             ls = self.lstm(_context)
             return ls
+        if _token == 'BILSTM':
+            bils = self.bilstm(_context)
+            return bils
         if _token == 'RNN':
             rnn = self.rnn(_context)
             return rnn
@@ -110,6 +114,13 @@ class NetGenerating(runtime.Parser):
         _context = self.Context(_parent, self._scanner, 'lstm', [])
         LSTM = self._scan('LSTM', context=_context)
         result = ['lstm']
+        numlist = self.numlist(_context)
+        return result + numlist
+    
+    def bilstm(self, _parent=None):
+        _context = self.Context(_parent, self._scanner, 'bilstm', [])
+        BiLSTM = self._scan('BILSTM', context=_context)
+        result = ['bilstm']
         numlist = self.numlist(_context)
         return result + numlist
     
@@ -198,6 +209,9 @@ def parse(rule, text):
 def caffe_to_keras(layer, rs = False):
     if layer[0] == "lstm":
         return keras.layers.LSTM(int(layer[1]), activation = layer[2], return_sequences = rs)
+    if layer[0] == "bilstm":
+        lstm = keras.layers.LSTM(int(layer[1]), activation = layer[2], return_sequences = rs)
+        return keras.layers.Bidirectional(lstm)
     if layer[0] == "rnn":
         return keras.layers.SimpleRNN(int(layer[1]), activation = layer[2], return_sequences = rs)
     if layer[0] == "gru":
@@ -239,7 +253,7 @@ def parse_network_structure(net):
     structure = []
     rs = False
     for layer_dict in net[::-1]:
-        if layer_dict[0] in ['lstm', 'rnn','gru']:
+        if layer_dict[0] in ['lstm', 'bilstm', 'rnn','gru']:
             rs = True
         new_layer =caffe_to_keras(layer_dict, rs)
 #        if layer_dict[0] in ["softmax", "fc"]:

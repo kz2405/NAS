@@ -107,18 +107,20 @@ class StateEnumerator:
     def enumerate_state(self, state, q_values):
         '''Defines all state transitions, populates q_values where actions are valid
 
-        Legal Transitions:
-           LSTM         -> LSTM, dropout        (IF state.layer_depth < layer_limit)
-           LSTM         -> fc                (If state.layer_depth < layer_limit)
-           LSTM         -> softmax              (Always)
+           RNN types: LSTM, GRU, Bidirectional LSTM, RNN
 
-           dropout      -> LSTM                 (If state.layer_depth < layer_limit) and not fc_occured
+        Legal Transitions:
+           RNN         -> RNN, dropout        (IF state.layer_depth < layer_limit)
+           RNN         -> fc                (If state.layer_depth < layer_limit)
+           RNN         -> terminate              (Always)
+
+           dropout      -> RNN                 (If state.layer_depth < layer_limit) and not fc_occured
            dropout      -> fc                (If state.layer_depth < layer_limit)
-           dropout      -> softmax              (Always)
+           dropout      -> terminate              (Always)
 
            fc        -> fc                (If state.layer_depth < layer_limit AND state.fc_depth < self.ssp.max_fc) # modified
            fc        -> dropout        (IF state.layer_depth < layer_limit)
-           fc        -> softmax              (Always)
+           fc        -> terminate              (Always)
 
         Updates: q_values and returns q_values
         '''
@@ -141,19 +143,34 @@ class StateEnumerator:
                                                 fc_size=0,
                                                 fc_occured = 0,
                                                 terminate=0)]
+            for unit in self.ssp.possible_units:
+                for activ_func in self.ssp.possible_actvf:
+                    actions += [State(layer_type='bilstm',
+                                                layer_depth=state.layer_depth + 2,
+#                                                 filter_depth=depth,
+#                                                 filter_size=filt,
+#                                                 stride=1,
+#                                                 image_size=state.image_size if self.ssp.conv_padding == 'SAME' \
+#                                                                             else self._calc_new_image_size(state.image_size, filt, 1),
+                                                units = unit,
+                                                activation = activ_func,
+                                                proba = 0,
+                                                fc_depth = state.fc_depth,
+                                                fc_size=0,
+                                                fc_occured = 0,
+                                                terminate=0)]
         elif state.terminate == 0:
             
             # First, add a terminate state (since the agent can choose to terminate from any non-termination state)
             # If we are at the layer limit, the only action left is to go to softmax
-            for activ_func in self.ssp.possible_actvf:
-                actions += [State(layer_type='fc',
+            actions += [State(layer_type='fc',
                                   layer_depth=state.layer_depth + 1,
 #                                  filter_depth=state.filter_depth,
 #                                  filter_size=state.filter_size,
 #                                  stride=state.stride,
 #                                  image_size=state.image_size,
                                     units=0,
-                                    activation=activ_func,
+                                    activation='linear',
                                     proba=0,
                                     fc_depth=state.fc_depth + 1,
                                     fc_size=1,
@@ -178,12 +195,28 @@ class StateEnumerator:
 
                 # (modified as below) 
                 # lstm states -- iterate through all possible units (number of neurons on the layer), activation
-                if (state.layer_type in ['start', 'lstm', 'rnn', 'gru', 'dropout']) and state.fc_occured == 0: # these layers can all go to lstm layer next
+                if (state.layer_type in ['start', 'lstm', 'bilstm', 'rnn', 'gru', 'dropout']) and state.fc_occured == 0: # these layers can all go to lstm layer next
                     for celltype in self.ssp.possible_celltypes:
                         for unit in self.ssp.possible_units:
                             for activ_func in self.ssp.possible_actvf:
                                 actions += [State(layer_type=celltype,
                                                 layer_depth=state.layer_depth + 1,
+#                                                 filter_depth=depth,
+#                                                 filter_size=filt,
+#                                                 stride=1,
+#                                                 image_size=state.image_size if self.ssp.conv_padding == 'SAME' \
+#                                                                             else self._calc_new_image_size(state.image_size, filt, 1),
+                                                units = unit,
+                                                activation = activ_func,
+                                                proba = 0,
+                                                fc_depth = state.fc_depth,
+                                                fc_size=0,
+                                                fc_occured = state.fc_occured,
+                                                terminate=0)]
+                    for unit in self.ssp.possible_units:
+                        for activ_func in self.ssp.possible_actvf:
+                            actions += [State(layer_type='bilstm',
+                                                layer_depth=state.layer_depth + 2,
 #                                                 filter_depth=depth,
 #                                                 filter_size=filt,
 #                                                 stride=1,
@@ -225,7 +258,7 @@ class StateEnumerator:
 # I commented the blocks above out because we don't need pooling for LSTM here; thus we don't need a gap or pool layer for now.
 
                 # dropout states -- iterate through all possible dropout rates (modified the original comment)
-                if (state.layer_type in ['lstm', 'gru', 'rnn','fc'] or (state.layer_type == 'dropout' and self.ssp.allow_consecutive_dropout)): 
+                if (state.layer_type in ['lstm','bilstm', 'gru', 'rnn','fc'] or (state.layer_type == 'dropout' and self.ssp.allow_consecutive_dropout)): 
                     #or(state.layer_type == 'start' and self.ssp.allow_initial_pooling)): 
                     #commented the line above out since we don't do initial dropout at the start?
                     #do we need a layer type called 'start'?
@@ -263,7 +296,7 @@ class StateEnumerator:
 # Instead, the new code is as below:
 
                 # FC States -- iterate through all possible fc sizes
-                if state.layer_type in ['start','fc','dropout','lstm', 'rnn', 'gru'] and state.fc_depth < self.ssp.max_fc - 1: #modified
+                if state.layer_type in ['start','fc','dropout','lstm','bilstm', 'rnn', 'gru'] and state.fc_depth < self.ssp.max_fc - 1: #modified
                     for fc_sizes in self._possible_fc_size(state):
                         for activ_func in self.ssp.possible_actvf:
                             actions += [State(layer_type='fc',
