@@ -26,7 +26,7 @@ class NetScanner(runtime.Scanner):
         # ('GLOBALAVE', re.compile('GAP')),
         # ('NIN', re.compile('NIN')),
         # ('BATCHNORM', re.compile('BN')),
-        ('SOFTMAX', re.compile('SM')),
+        ('TERMINATE', re.compile('TERMINATE')),
         ('ACTIV', re.compile('|'.join(possible_actvf)))
     ]
     def __init__(self, str,*args,**kw):
@@ -36,8 +36,7 @@ class NetGenerating(runtime.Parser):
     Context = runtime.Context
     def layers(self, _parent=None):
         _context = self.Context(_parent, self._scanner, 'layers', [])
-       # _token = self._peek('CONV', 'NIN', 'GLOBALAVE', 'BATCHNORM', 'POOL', 'SPLIT', 'FC', 'DROP', 'SOFTMAX', context=_context)
-        _token = self._peek('LSTM', 'BILSTM', 'RNN', 'GRU', 'FC', 'DROP', 'SOFTMAX', 'SPLIT', context=_context)     
+        _token = self._peek('LSTM', 'BILSTM', 'RNN', 'GRU', 'FC', 'DROP', 'TERMINATE', 'SPLIT', context=_context)     
         if _token == 'LSTM':
             ls = self.lstm(_context)
             return ls
@@ -75,8 +74,8 @@ class NetGenerating(runtime.Parser):
             drop = self.drop(_context)
             return drop
         else: 
-            softmax = self.softmax(_context)
-            return softmax
+            terminate = self.terminate(_context)
+            return terminate
 #    def conv(self, _parent=None):
 #        _context = self.Context(_parent, self._scanner, 'conv', [])
 #        CONV = self._scan('CONV', context=_context)
@@ -152,12 +151,11 @@ class NetGenerating(runtime.Parser):
         numlist = self.numlist(_context)
         return result + numlist
 
-    def softmax(self, _parent=None):
-        _context = self.Context(_parent, self._scanner, 'softmax', [])
-        SOFTMAX = self._scan('SOFTMAX', context=_context)
-        result = ['softmax']
-        numlist = self.numlist(_context)
-        return result + numlist
+    def terminate(self, _parent=None):
+        _context = self.Context(_parent, self._scanner, 'terminate', [])
+        TERMINATE = self._scan('TERMINATE', context=_context)
+        result = ['terminate']
+        return result 
 
     def split(self, _parent=None):
         _context = self.Context(_parent, self._scanner, 'split', [])
@@ -235,8 +233,9 @@ def caffe_to_keras(layer, rs = False):
     elif layer[0] == "fc":
         return keras.layers.Dense(
         units=layer[1], activation = layer[2])
-    elif layer[0] == "softmax":
-         return keras.layers.Dense(1, activation = "softmax")
+    elif layer[0] == "terminate":
+         return keras.layers.Dense(units = 1, activation = "linear")
+     
     #elif layer[0]== "pool":
     #    return keras.layers.MaxPooling2D(
     #    pool_size = (layer[1], layer[1]), 
@@ -253,10 +252,8 @@ def parse_network_structure(net):
     structure = []
     rs = False
     for layer_dict in net[::-1]:
+        new_layer =caffe_to_keras(layer_dict, rs)
         if layer_dict[0] in ['lstm', 'bilstm', 'rnn','gru']:
             rs = True
-        new_layer =caffe_to_keras(layer_dict, rs)
-#        if layer_dict[0] in ["softmax", "fc"]:
-#            structure.append(keras.layers.Flatten())
         structure.append(new_layer)
     return structure[::-1]

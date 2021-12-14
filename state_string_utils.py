@@ -62,7 +62,7 @@ class StateStringUtils:
         ''' Returns the string asociated with state.
         '''
         if state.terminate == 1:
-            return 'FC(%i, %s)' % (self.output_number, state.activation)
+            return 'TERMINATE'
         # elif state.layer_type == 'conv':
         #     return 'C(%i,%i,%i)' % (state.filter_depth, state.filter_size, state.stride)
         # elif state.layer_type == 'gap':
@@ -80,7 +80,7 @@ class StateStringUtils:
         elif state.layer_type == 'fc':
             return 'FC(%i, %s)' % (state.fc_size, state.activation)
         elif state.layer_type == 'dropout':
-            return 'D(%f)' % (state.proba) ##SUPER BAD i am using fc_size and filter depth -- should fix later
+            return 'D(%f)' % (state.proba) 
         return None
 
     def convert_model_string_to_states(self, parsed_list, start_state=None):
@@ -168,22 +168,7 @@ class StateStringUtils:
             #                         terminate=0))
             elif layer[0] == 'fc':
                 fc_occur = 1
-                if layer == parsed_list[-1]:
-                    states.append(se.State(layer_type='fc',
-                                    layer_depth=states[-1].layer_depth + 1,
-                                    # filter_depth=len([state for state in states if state.layer_type == 'fc']),
-                                    # filter_size=0,
-                                    # stride=0,
-                                    # image_size=0,
-                                    units=0,
-                                    activation=layer[2],
-                                    proba=0,
-                                    fc_depth=states[-1].fc_depth + 1,
-                                    fc_size=layer[1],
-                                    fc_occured = fc_occur,
-                                    terminate=1))
-                else:
-                    states.append(se.State(layer_type='fc',
+                states.append(se.State(layer_type='fc',
                                     layer_depth=states[-1].layer_depth + 1,
                                     # filter_depth=len([state for state in states if state.layer_type == 'fc']),
                                     # filter_size=0,
@@ -210,6 +195,21 @@ class StateStringUtils:
                                     fc_size=0,
                                     fc_occured = fc_occur,
                                     terminate=0))
+            elif layer[0] == 'terminate':
+                fc_occur = 1
+                states.append(se.State(layer_type='terminate',
+                                    layer_depth=states[-1].layer_depth + 1,
+                                    # filter_depth=len([state for state in states if state.layer_type == 'fc']),
+                                    # filter_size=0,
+                                    # stride=0,
+                                    # image_size=0,
+                                    units=0,
+                                    activation='linear',
+                                    proba=0,
+                                    fc_depth=states[-1].fc_depth + 1,
+                                    fc_size=1,
+                                    fc_occured = fc_occur,
+                                    terminate=1))
 
         return states
 

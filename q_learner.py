@@ -260,7 +260,10 @@ class QLearner:
         action_values = self.qstore.q[self.state.as_tuple()]
         # epsilon greedy choice
         if np.random.random() < self.epsilon:
-            action = se.State(state_list=action_values['actions'][np.random.randint(len(action_values['actions']))])
+            possiblelayertypes = list({layer[0] for layer in action_values['actions']})
+            chosenlayertype = possiblelayertypes[np.random.randint(len(possiblelayertypes))]
+            possiblelayers = [layer for layer in action_values['actions'] if layer[0] == chosenlayertype]
+            action = se.State(state_list=possiblelayers[np.random.randint(len(possiblelayers))])
         else:
             min_q_value = min(action_values['utilities'])
             min_q_indexes = [i for i in range(len(action_values['actions'])) if action_values['utilities'][i]==min_q_value]
@@ -319,7 +322,6 @@ class QLearner:
         action_between_states = to_state.as_tuple()
 
         # Q_Learning update rule
-
         values[actions.index(action_between_states)] = values[actions.index(action_between_states)] + \
                                                 self.state_space_parameters.learning_rate * (reward + self.state_space_parameters.discount_factor * min_over_next_states - values[actions.index(action_between_states)])
 

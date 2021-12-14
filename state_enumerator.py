@@ -143,9 +143,10 @@ class StateEnumerator:
                                                 fc_size=0,
                                                 fc_occured = 0,
                                                 terminate=0)]
-            for unit in self.ssp.possible_units:
-                for activ_func in self.ssp.possible_actvf:
-                    actions += [State(layer_type='bilstm',
+            if state.layer_depth + 1 < self.layer_limit:
+                for unit in self.ssp.possible_units:
+                    for activ_func in self.ssp.possible_actvf:
+                        actions += [State(layer_type='bilstm',
                                                 layer_depth=state.layer_depth + 2,
 #                                                 filter_depth=depth,
 #                                                 filter_size=filt,
@@ -163,8 +164,8 @@ class StateEnumerator:
             
             # First, add a terminate state (since the agent can choose to terminate from any non-termination state)
             # If we are at the layer limit, the only action left is to go to softmax
-            actions += [State(layer_type='fc',
-                                  layer_depth=state.layer_depth + 1,
+            actions += [State(layer_type='terminate',
+                                   layer_depth=state.layer_depth + 1,
 #                                  filter_depth=state.filter_depth,
 #                                  filter_size=state.filter_size,
 #                                  stride=state.stride,
@@ -175,7 +176,7 @@ class StateEnumerator:
                                     fc_depth=state.fc_depth + 1,
                                     fc_size=1,
                                     fc_occured = 1,
-                                   terminate=1)]
+                                    terminate=1)]
             
             if state.layer_depth < self.layer_limit:
 
