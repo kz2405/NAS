@@ -6,12 +6,12 @@ import netparser
 
 
 # Action restrictions we have:  
-# (1) we allow the agent to terminate a path at any point, i.e. it may choose a termination state from any non-termination state.  
-# (2) we only allow transitions for a state with layer depth i to a state with layer depth i + 1 to ensure no loops in the graph.  
-# (3) Any state at the maximum layer depth may only transition to a termination layer.  
-# (4) we limit the number of fully connected (FC) layers in the whole network to be at maximum two to keep the set of learnable parameters reasonally small.   
-# (5) Furthermore, even if (4) is satisfied, a state s of type FC with number of neurons d may only transition to another state s' of type FC with number of neurons d' <= d.  
-# (6) no consecutive dropout layers.
+# Any non-termination state s can directly go to a termination state.
+# We only allow transitions for a non-termination, non-bilstm-layer-type state s with depth i to a state with layer depth i+1; or for a bilstm-layer-type state s with depth i to a state with layer depth i+2, to ensure no loops in the state-action graph.
+# Any state that reaches the maximum layer depth may only transition to a termination state. 
+# We limit the number of fully connected (FC) layers in the whole network to be at maximum one to keep the set of learnable parameters reasonably small.
+# We don’t allow two consecutive dropout layers nor have a dropout layer as the first layer.
+# Only RNN types of layers are candidates for the initial layer.
 
 
 class State:
