@@ -297,7 +297,7 @@ class StateEnumerator:
 # Instead, the new code is as below:
 
                 # FC States -- iterate through all possible fc sizes
-                if state.layer_type in ['start','fc','dropout','lstm','bilstm', 'rnn', 'gru'] and state.fc_depth < self.ssp.max_fc - 1: #modified
+                if state.layer_type in ['start','fc','dropout','lstm','bilstm', 'rnn', 'gru'] and state.fc_depth < self.ssp.max_fc: #modified
                     for fc_sizes in self._possible_fc_size(state):
                         for activ_func in self.ssp.possible_actvf:
                             actions += [State(layer_type='fc',
