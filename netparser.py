@@ -1,7 +1,10 @@
+from models.AutoML.state_space_parameters import possible_actvf
 from tensorflow import keras
 import re
 from yapps import runtime
-from models.AutoML.state_space_parameters import possible_actvf
+
+'''This file holds code that parses architecture strings to turn them into Keras layers 
+There are two classes: NetScanner which holds the regex patters, and NetParser which parses the strings'''
 
 class NetScanner(runtime.Scanner):
     '''Scanner class that uses yapps runtime for regex on architecture strings'''
@@ -27,7 +30,7 @@ class NetScanner(runtime.Scanner):
     def __init__(self, str,*args,**kw):
         runtime.Scanner.__init__(self,None,{'\\s+':None,},str,*args,**kw)
         
-class NetGenerating(runtime.Parser):
+class NetParser(runtime.Parser):
     '''Parser class that calls yapps runtime scanner for regex on architecture strings'''
     Context = runtime.Context
     
@@ -141,7 +144,7 @@ class NetGenerating(runtime.Parser):
     
 def parse(rule, text):
     '''Parses an architecture string into a list representation '''
-    P = NetGenerating(NetScanner(text))
+    P = NetParser(NetScanner(text))
     return runtime.wrap_error_reporter(P, rule)
 
 

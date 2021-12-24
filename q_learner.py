@@ -1,9 +1,14 @@
-import numpy as np
-import pandas as pd
-import os
 import netparser 
+import numpy as np
+import os
+import pandas as pd
 import state_enumerator as se
 from  state_string_utils import StateStringUtils
+
+
+'''This file holds the code for the Q-Learning algorithm.
+It has two classes: QValues(), which holds the Q values, and QLearner, which runs the Q Learning'''
+
 
 class QValues:
     ''' Stores Q_values as a dict {start_states, {actions, Q_values}} with helper functions.'''
