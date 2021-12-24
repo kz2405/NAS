@@ -7,7 +7,7 @@ possible_actvf = ['tanh','sigmoid','relu','leaky_relu'] #search space for activa
 possible_units = [10, 20, 30]
 possible_celltypes = ['lstm', 'rnn', 'gru']
 possible_fc_sizes = [10, 20, 30]  
-init_utility = 0.5
+init_utility = 0.1
 batch_norm = False    
 # Epsilon schedule for q learning agent.
 # Format : [[epsilon, # unique models]]
@@ -23,6 +23,6 @@ epsilon_schedule = [[1.0, 1500],
                     [0.2, 150],
                     [0.1, 150]]
 # Q-Learning Hyper parameters
-learning_rate = 0.01                    # Q Learning learning rate (alpha from Equation 3)
+learning_rate = 0.1                    # Q Learning learning rate (alpha from Equation 3)
 discount_factor = 1.0                   # Q Learning discount factor (gamma from Equation 3)
 replay_number = 128                     # Number trajectories to sample for replay at each iteration

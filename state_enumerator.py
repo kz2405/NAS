@@ -143,10 +143,10 @@ class StateEnumerator:
                                                 fc_size=0,
                                                 fc_occured = 0,
                                                 terminate=0)]
-            if state.layer_depth + 1 < self.layer_limit:
-                for unit in self.ssp.possible_units:
-                    for activ_func in self.ssp.possible_actvf:
-                        actions += [State(layer_type='bilstm',
+
+            for unit in self.ssp.possible_units:
+                for activ_func in self.ssp.possible_actvf:
+                    actions += [State(layer_type='bilstm',
                                                 layer_depth=state.layer_depth + 2,
 #                                                 filter_depth=depth,
 #                                                 filter_size=filt,
@@ -214,9 +214,10 @@ class StateEnumerator:
                                                 fc_size=0,
                                                 fc_occured = state.fc_occured,
                                                 terminate=0)]
-                    for unit in self.ssp.possible_units:
-                        for activ_func in self.ssp.possible_actvf:
-                            actions += [State(layer_type='bilstm',
+                    if state.layer_depth + 1 < self.layer_limit:
+                        for unit in self.ssp.possible_units:
+                            for activ_func in self.ssp.possible_actvf:
+                                actions += [State(layer_type='bilstm',
                                                 layer_depth=state.layer_depth + 2,
 #                                                 filter_depth=depth,
 #                                                 filter_size=filt,
