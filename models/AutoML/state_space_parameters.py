@@ -1,6 +1,6 @@
 layer_limit = 6
 output_states = 1
-max_fc = 2
+max_fc = 1
 allow_consecutive_dropout = False 
 possible_proba = [0.1, 0.2, 0.3, 0.4, 0.5] #search space for dropout rate
 possible_actvf = ['tanh','sigmoid','relu','leaky_relu'] #search space for activation functions
