@@ -1,7 +1,6 @@
 import math
 import numpy as np
 from operator import itemgetter
-#import cnn
 import netparser
 import state_enumerator as se
 
