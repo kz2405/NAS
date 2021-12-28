@@ -164,19 +164,6 @@ class StateEnumerator:
                                                 fc_occured = 0,
                                                 terminate=0)]
 
-            if state.layer_depth + 1 < self.layer_limit:
-                for unit in self.ssp.possible_units:
-                    for activ_func in self.ssp.possible_actvf:
-                        actions += [State(layer_type='bilstm',
-                                                layer_depth=state.layer_depth + 2,
-                                                units = unit,
-                                                activation = activ_func,
-                                                proba = 0,
-                                                fc_depth = state.fc_depth,
-                                                fc_size=0,
-                                                fc_occured = 0,
-                                                terminate=0)]
-
         elif state.terminate == 0: # non-initial layer
             
             # First, add a terminate state (since the agent can choose to terminate from any non-termination state)
