@@ -12,16 +12,16 @@ batch_norm = False
 # Epsilon schedule for q learning agent.
 # Format : [[epsilon, # unique models]]
 # Epsilon = 1.0 corresponds to fully random, 0.0 to fully greedy
-epsilon_schedule = [[1.0, 1500],
+epsilon_schedule = [[1.0, 1000],
                     [0.9, 100],
                     [0.8, 100],
                     [0.7, 100],
-                    [0.6, 150],
-                    [0.5, 150],
-                    [0.4, 150],
-                    [0.3, 150],
-                    [0.2, 150],
-                    [0.1, 150]]
+                    [0.6, 100],
+                    [0.5, 100],
+                    [0.4, 100],
+                    [0.3, 100],
+                    [0.2, 100],
+                    [0.1, 100]]
 # Q-Learning Hyper parameters
 learning_rate = 0.1                    # Q Learning learning rate (alpha from Equation 3)
 discount_factor = 1.0                   # Q Learning discount factor (gamma from Equation 3)
