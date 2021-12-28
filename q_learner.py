@@ -1,24 +1,26 @@
-import numpy as np
-import pandas as pd
-import os
 import netparser 
+import numpy as np
+import os
+import pandas as pd
 import state_enumerator as se
 from  state_string_utils import StateStringUtils
 
+
+'''This file holds the code for the Q-Learning algorithm.
+It has two classes: QValues(), which holds the Q values, and QLearner, which runs the Q Learning'''
+
+
 class QValues:
-    ''' Stores Q_values with helper functions.'''
+    ''' Stores Q_values as a dict {start_states, {actions, Q_values}} with helper functions.'''
     def __init__(self):
         self.q = {}
 
     def load_q_values(self, q_csv_path):
+        '''Loads Q_values from a csv file'''
         self.q = {}
         q_csv = pd.read_csv(q_csv_path)
         for row in zip(*[q_csv[col].values.tolist() for col in ['start_layer_type',
                                               'start_layer_depth',
-                                            #   'start_filter_depth',
-                                            #   'start_filter_size',
-                                            #   'start_stride',
-                                            #   'start_image_size',
                                               'start_units',
                                               'start_activation',
                                               'start_proba',
@@ -28,10 +30,6 @@ class QValues:
                                               'start_terminate',
                                               'end_layer_type',
                                               'end_layer_depth',
-                                            #   'end_filter_depth',
-                                            #   'end_filter_size',
-                                            #   'end_stride',
-                                            #   'end_image_size',
                                               'end_units',
                                               'end_activation',
                                               'end_proba',
@@ -42,10 +40,6 @@ class QValues:
                                               'utility']]):
             start_state = se.State(layer_type = row[0],
                                    layer_depth = row[1],
-                                #    filter_depth = row[2],
-                                #    filter_size = row[3],
-                                #    stride = row[4],
-                                #    image_size = row[5],
                                    units = row[2],
                                    activation = row[3] if not pd.isnull(row[3])  else None,
                                    proba = row[4],
@@ -55,10 +49,6 @@ class QValues:
                                    terminate = row[8]).as_tuple()
             end_state = se.State(layer_type = row[9],
                                  layer_depth = row[10],
-                                #  filter_depth = row[10],
-                                #  filter_size = row[11],
-                                #  stride = row[12],
-                                #  image_size = row[13],
                                  units = row[11],
                                  activation = row[12] if not pd.isnull(row[12])  else None,
                                  proba = row[13],
@@ -76,12 +66,9 @@ class QValues:
 
 
     def save_to_csv(self, q_csv_path):
+        '''writes Q_values to a csv file'''
         start_layer_type = []
         start_layer_depth = []
-        # start_filter_depth = []
-        # start_filter_size = []
-        # start_stride = []
-        # start_image_size = []
         start_units = []
         start_activation = []
         start_proba = []
@@ -91,10 +78,6 @@ class QValues:
         start_terminate = []
         end_layer_type = []
         end_layer_depth = []
-        # end_filter_depth = []
-        # end_filter_size = []
-        # end_stride = []
-        # end_image_size = []
         end_units = []
         end_activation = []
         end_proba = []
@@ -110,10 +93,6 @@ class QValues:
                 utility.append(self.q[start_state_list]['utilities'][to_state_ix])
                 start_layer_type.append(start_state.layer_type)
                 start_layer_depth.append(start_state.layer_depth)
-                # start_filter_depth.append(start_state.filter_depth)
-                # start_filter_size.append(start_state.filter_size)
-                # start_stride.append(start_state.stride)
-                # start_image_size.append(start_state.image_size)
                 start_units.append(start_state.units)
                 start_activation.append(start_state.activation)
                 start_proba.append(start_state.proba)
@@ -123,10 +102,6 @@ class QValues:
                 start_terminate.append(start_state.terminate)
                 end_layer_type.append(to_state.layer_type)
                 end_layer_depth.append(to_state.layer_depth)
-                # end_filter_depth.append(to_state.filter_depth)
-                # end_filter_size.append(to_state.filter_size)
-                # end_stride.append(to_state.stride)
-                # end_image_size.append(to_state.image_size)
                 end_units.append(to_state.units)
                 end_activation.append(to_state.activation)
                 end_proba.append(to_state.proba)
@@ -137,10 +112,6 @@ class QValues:
 
         q_csv = pd.DataFrame({'start_layer_type' : start_layer_type,
                               'start_layer_depth' : start_layer_depth,
-                            #   'start_filter_depth' : start_filter_depth,
-                            #   'start_filter_size' : start_filter_size,
-                            #   'start_stride' : start_stride,
-                            #   'start_image_size' : start_image_size,
                               'start_units' : start_units,
                               'start_activation' : start_activation,
                               'start_proba' : start_proba,
@@ -150,10 +121,6 @@ class QValues:
                               'start_terminate' : start_terminate,
                               'end_layer_type' : end_layer_type,
                               'end_layer_depth' : end_layer_depth,
-                            #   'end_filter_depth' : end_filter_depth,
-                            #   'end_filter_size' : end_filter_size,
-                            #   'end_stride' : end_stride,
-                            #   'end_image_size' : end_image_size,
                               'end_units' : end_units,
                               'end_activation' : end_activation,
                               'end_proba' : end_proba,
@@ -166,18 +133,8 @@ class QValues:
 
 
 class QLearner:
-    ''' All Q-Learning updates and policy generator
-
-        Args
-            state: The starting state for the QLearning Agent
-            q_values: A dictionary of q_values -- 
-                            keys: State tuples (State.as_tuple())
-                            values: [state list, qvalue list]
-            replay_dictionary: A pandas dataframe with columns: 'net' for net strings, and 'accuracy_best_val' for best accuracy
-                                        and 'accuracy_last_val' for last accuracy achieved
-
-            output_number : number of output neurons
-    '''
+    ''' Class that handles Q_learning through Q_value updates and architecture generation'''
+    
     def __init__(self,
                  state_space_parameters, 
                  epsilon,
@@ -195,40 +152,38 @@ class QLearner:
         self.stringutils = StateStringUtils(state_space_parameters)
 
         # Starting State
-        #self.state = se.State('start', 0, 1, 0, 0, state_space_parameters.image_size, 0, 0) if not state else state
         self.state = se.State('start', 0, 0, None, 0, 0, 0, 0, 0) if not state else state
-        #self.bucketed_state = self.enum.bucket_state(self.state)
 
-
-        # Cached Q-Values -- used for q learning update and transition
+        # Q Values
         self.qstore = QValues() if not qstore else qstore
+        
+        # Replay database which stores the RMSE of all trained models
         self.replay_dictionary = replay_dictionary
 
-        self.epsilon=epsilon # epsilon: parameter for epsilon greedy strategy
+        self.epsilon=epsilon 
 
     def update_replay_database(self, new_replay_dic):
+        '''updates the replay database'''
         self.replay_dictionary = new_replay_dic
 
     def generate_net(self):
-        # Have Q-Learning agent sample current policy to generate a network and convert network to string format
+        ''' Have Q-Learning agent generate a network using current Q_values and convert network to string format'''
         self._reset_for_new_walk()
         state_list = self._run_agent()
-        #state_list = self.stringutils.add_drop_out_states(state_list)
         net_string = self.stringutils.state_list_to_string(state_list)
 
         # Check if we have already trained this model
         if net_string in self.replay_dictionary['net'].values:
             acc_best_val = self.replay_dictionary[self.replay_dictionary['net']==net_string]['accuracy_best_val'].values[0]
-
             
         else:
 
             acc_best_val = -1.0
 
-
         return (net_string, acc_best_val)
 
     def save_q(self, q_path):
+        '''calls the save to csv method of QValues class'''
         self.qstore.save_to_csv(os.path.join(q_path,'q_values.csv'))
 
     def _reset_for_new_walk(self):
@@ -237,27 +192,22 @@ class QLearner:
         self.state_list = []
 
         # Starting State
-        #self.state = se.State('start', 0, 1, 0, 0, self.state_space_parameters.image_size, 0, 0)
         self.state = se.State('start', 0, 0, None, 0, 0, 0, 0, 0) #to check
-        #self.bucketed_state = self.enum.bucket_state(self.state)
 
     def _run_agent(self):
-        ''' Have Q-Learning agent sample current policy to generate a network
-        '''
+        ''' Have Q-Learning agent use current epsilon and QValues to generate a network'''
         while self.state.terminate == 0:
             self._transition_q_learning()
 
         return self.state_list
 
     def _transition_q_learning(self):
-        ''' Updates self.state according to an epsilon-greedy strategy'''
-        #if self.bucketed_state.as_tuple() not in self.qstore.q:
-        #    self.enum.enumerate_state(self.bucketed_state, self.qstore.q)
+        '''Updates next state according to an epsilon-greedy strategy'''
         if self.state.as_tuple() not in self.qstore.q:
             self.enum.enumerate_state(self.state, self.qstore.q)
 
-        #action_values = self.qstore.q[self.bucketed_state.as_tuple()]
         action_values = self.qstore.q[self.state.as_tuple()]
+        
         # epsilon greedy choice
         if np.random.random() < self.epsilon:
             possiblelayertypes = list({layer[0] for layer in action_values['actions']})
@@ -271,37 +221,29 @@ class QLearner:
             action = se.State(state_list=min_actions[np.random.randint(len(min_actions))])
 
         self.state = self.enum.state_action_transition(self.state, action)
-        #self.bucketed_state = self.enum.bucket_state(self.state)
 
         self._post_transition_updates()
 
     def _post_transition_updates(self):
-        #State to go in state list
-        #bucketed_state = self.bucketed_state.copy()
+        '''updates class state list'''
 
         self.state_list.append(self.state.copy())
 
     def sample_replay_for_update(self):
-        # Experience replay to update Q-Values
+        '''Sample from replay database to update QValues'''
         for i in range(self.state_space_parameters.replay_number):
             net = np.random.choice(self.replay_dictionary['net'])
             accuracy_best_val = self.replay_dictionary[self.replay_dictionary['net'] == net]['accuracy_best_val'].values[0]
             state_list = self.stringutils.convert_model_string_to_states(netparser.parse('net', net))
-
-            #state_list = self.stringutils.remove_drop_out_states(state_list)
-
-            # Convert States so they are bucketed
-            #state_list = [self.enum.bucket_state(state) for state in state_list]
-                
             
             self.update_q_value_sequence(state_list, self.accuracy_to_reward(accuracy_best_val))
 
     def accuracy_to_reward(self, acc):
-        '''How to define reward from accuracy'''
+        '''How to define reward from accuracy (in our case, accuracy = RMSE)'''
         return acc
 
     def update_q_value_sequence(self, states, termination_reward):
-        '''Update all Q-Values for a sequence.'''
+        '''Update a sequence of QValues corresponding to the trained architecture'''
         self._update_q_value(states[-2], states[-1], termination_reward)
         for i in reversed(range(len(states) - 2)):
             self._update_q_value(states[i], states[i+1], 0)
@@ -318,7 +260,6 @@ class QLearner:
 
         min_over_next_states = min(self.qstore.q[to_state.as_tuple()]['utilities']) if to_state.terminate != 1 else 0
 
-        #action_between_states = self.enum.transition_to_action(start_state, to_state).as_tuple()
         action_between_states = to_state.as_tuple()
 
         # Q_Learning update rule
