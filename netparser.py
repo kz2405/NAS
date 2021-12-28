@@ -1,9 +1,13 @@
+from models.AutoML.state_space_parameters import possible_actvf
 from tensorflow import keras
 import re
 from yapps import runtime
-from models.AutoML.state_space_parameters import possible_actvf
+
+'''This file holds code that parses architecture strings to turn them into Keras layers 
+There are two classes: NetScanner which holds the regex patters, and NetParser which parses the strings'''
 
 class NetScanner(runtime.Scanner):
+    '''Scanner class that uses yapps runtime for regex on architecture strings'''
     patterns = [
         ('"\\\\]"', re.compile('\\]')),
         ('"\\\\["', re.compile('\\[')),
@@ -14,29 +18,26 @@ class NetScanner(runtime.Scanner):
         ('"\\\\{"', re.compile('\\{')),
         ('\\s+', re.compile('\\s+')),
         ('NUM', re.compile('[-+]?[0-9]*\.?[0-9]+')),
-        #('CONV', re.compile('C')),
-        # ('POOL', re.compile('P')),
-        ('SPLIT', re.compile('S')),
         ('LSTM', re.compile('LSTM')),
         ('BILSTM', re.compile('BILSTM')),
         ('RNN', re.compile('RNN')),
         ('GRU', re.compile('GRU')),
         ('FC', re.compile('FC')),
         ('DROP', re.compile('D')),
-        # ('GLOBALAVE', re.compile('GAP')),
-        # ('NIN', re.compile('NIN')),
-        # ('BATCHNORM', re.compile('BN')),
         ('TERMINATE', re.compile('TERMINATE')),
         ('ACTIV', re.compile('|'.join(possible_actvf)))
     ]
     def __init__(self, str,*args,**kw):
         runtime.Scanner.__init__(self,None,{'\\s+':None,},str,*args,**kw)
         
-class NetGenerating(runtime.Parser):
+class NetParser(runtime.Parser):
+    '''Parser class that calls yapps runtime scanner for regex on architecture strings'''
     Context = runtime.Context
+    
     def layers(self, _parent=None):
+        '''Parses a layer'''
         _context = self.Context(_parent, self._scanner, 'layers', [])
-        _token = self._peek('LSTM', 'BILSTM', 'RNN', 'GRU', 'FC', 'DROP', 'TERMINATE', 'SPLIT', context=_context)     
+        _token = self._peek('LSTM', 'BILSTM', 'RNN', 'GRU', 'FC', 'DROP', 'TERMINATE', context=_context)     
         if _token == 'LSTM':
             ls = self.lstm(_context)
             return ls
@@ -49,24 +50,6 @@ class NetGenerating(runtime.Parser):
         if _token == 'GRU':
             gru = self.gru(_context)
             return gru
-        #if _token == 'CONV':
-        #    conv = self.conv(_context)
-        #    return conv
-        #elif _token == 'NIN':
-        #    nin = self.nin(_context)
-        #    return nin
-        #elif _token == 'GLOBALAVE':
-        #    gap = self.gap(_context)
-        #    return gap
-        #elif _token == 'BATCHNORM':
-        #    bn = self.bn(_context)
-        #    return bn
-        #elif _token == 'POOL':
-        #    pool = self.pool(_context)
-        #    return pool
-        #elif _token == 'SPLIT':
-        #    split = self.split(_context)
-        #    return split
         elif _token == 'FC':
             fc = self.fc(_context)
             return fc
@@ -76,102 +59,64 @@ class NetGenerating(runtime.Parser):
         else: 
             terminate = self.terminate(_context)
             return terminate
-#    def conv(self, _parent=None):
-#        _context = self.Context(_parent, self._scanner, 'conv', [])
-#        CONV = self._scan('CONV', context=_context)
-#        result = ['conv']
-#        numlist = self.numlist(_context)
-#        return result + numlist
-
-#    def nin(self, _parent=None):
-#        _context = self.Context(_parent, self._scanner, 'nin', [])
-#        NIN = self._scan('NIN', context=_context)
-#        result = ['nin']
-#        numlist = self.numlist(_context)
-#        return result + numlist
-
-#    def gap(self, _parent=None):
-#        _context = self.Context(_parent, self._scanner, 'gap', [])
-#        GLOBALAVE = self._scan('GLOBALAVE', context=_context)
-#        result = ['gap']
-#        numlist = self.numlist(_context)
-#        return result + numlist
-
-#    def bn(self, _parent=None):
-#        _context = self.Context(_parent, self._scanner, 'bn', [])
-#        BATCHNORM = self._scan('BATCHNORM', context=_context)
-#        return ['bn']
-
-#    def pool(self, _parent=None):
-#        _context = self.Context(_parent, self._scanner, 'pool', [])
-#        POOL = self._scan('POOL', context=_context)
-#        result = ['pool']
-#        numlist = self.numlist(_context)
-#        return result + numlist
     
     def lstm(self, _parent=None):
+        '''Parses LSTM layer'''
         _context = self.Context(_parent, self._scanner, 'lstm', [])
-        LSTM = self._scan('LSTM', context=_context)
+        self._scan('LSTM', context=_context)
         result = ['lstm']
         numlist = self.numlist(_context)
         return result + numlist
     
     def bilstm(self, _parent=None):
+        '''Parses biLSTM layer'''
         _context = self.Context(_parent, self._scanner, 'bilstm', [])
-        BiLSTM = self._scan('BILSTM', context=_context)
+        self._scan('BILSTM', context=_context)
         result = ['bilstm']
         numlist = self.numlist(_context)
         return result + numlist
     
     def rnn(self, _parent=None):
+        '''Parses RNN layer'''
         _context = self.Context(_parent, self._scanner, 'rnn', [])
-        RNN = self._scan('RNN', context=_context)
+        self._scan('RNN', context=_context)
         result = ['rnn']
         numlist = self.numlist(_context)
         return result + numlist
     
     def gru(self, _parent=None):
+        '''Parses GRU layer'''
         _context = self.Context(_parent, self._scanner, 'gru', [])
-        LSTM = self._scan('GRU', context=_context)
+        self._scan('GRU', context=_context)
         result = ['gru']
         numlist = self.numlist(_context)
         return result + numlist
     
     def fc(self, _parent=None):
+        '''Parses FC layer'''
         _context = self.Context(_parent, self._scanner, 'fc', [])
-        FC = self._scan('FC', context=_context)
+        self._scan('FC', context=_context)
         result = ['fc']
         numlist = self.numlist(_context)
         return result + numlist
 
     def drop(self, _parent=None):
+        '''Parses Dropout layer'''
         _context = self.Context(_parent, self._scanner, 'drop', [])
-        DROP = self._scan('DROP', context=_context)
+        self._scan('DROP', context=_context)
         result = ['dropout']
         numlist = self.numlist(_context)
         return result + numlist
 
     def terminate(self, _parent=None):
+        '''Parses Termination layer'''
         _context = self.Context(_parent, self._scanner, 'terminate', [])
-        TERMINATE = self._scan('TERMINATE', context=_context)
+        self._scan('TERMINATE', context=_context)
         result = ['terminate']
         return result 
 
-    def split(self, _parent=None):
-        _context = self.Context(_parent, self._scanner, 'split', [])
-        SPLIT = self._scan('SPLIT', context=_context)
-        self._scan('"\\\\{"', context=_context)
-        result = ['split']
-        net = self.net(_context)
-        result.append(net)
-        while self._peek('"\\\\}"', '","', context=_context) == '","':
-            self._scan('","', context=_context)
-            net = self.net(_context)
-            result.append(net)
-        self._scan('"\\\\}"', context=_context)
-        return result
-
     def numlist(self, _parent=None):
+        '''Parses the arguments (number of neurons and activation function) of a layer'''
         _context = self.Context(_parent, self._scanner, 'numlist', [])
         self._scan('"\\\\("', context=_context)
         result = []
@@ -183,8 +128,9 @@ class NetGenerating(runtime.Parser):
             result.append(activ_fn)
         self._scan('"\\\\)"', context=_context)
         return result
-
+    
     def net(self, _parent=None):
+        ''' Parses the whole architecture string'''
         _context = self.Context(_parent, self._scanner, 'net', [])
         self._scan('"\\\\["', context=_context)
         result = []
@@ -196,15 +142,16 @@ class NetGenerating(runtime.Parser):
             result.append(layers)
         self._scan('"\\\\]"', context=_context)
         return result
-
     
 def parse(rule, text):
-    P = NetGenerating(NetScanner(text))
+    '''Parses an architecture string into a list representation '''
+    P = NetParser(NetScanner(text))
     return runtime.wrap_error_reporter(P, rule)
 
 
 
 def caffe_to_keras(layer, rs = False):
+    ''' Turns a list representation of a layer into a Keras layer'''
     if layer[0] == "lstm":
         return keras.layers.LSTM(int(layer[1]), activation = layer[2], return_sequences = rs)
     if layer[0] == "bilstm":
@@ -214,20 +161,6 @@ def caffe_to_keras(layer, rs = False):
         return keras.layers.SimpleRNN(int(layer[1]), activation = layer[2], return_sequences = rs)
     if layer[0] == "gru":
         return keras.layers.GRU(int(layer[1]), activation = layer[2], return_sequences = rs)
-    #if layer[0] == 'conv':
-    #    if first:
-    #        return keras.layers.Conv2D(
-    #        layer[1],
-    #        layer[2],
-    #        strides = (layer[3], layer[3]),
-    #    )
-    #    else:
-    #        return keras.layers.Conv2D(
-    #        layer[1],
-    #        layer[2],
-    #        strides = (layer[3], layer[3]),
-    #        input_shape = (28,28,1)
-    #    )
     elif layer[0] == "dropout":
         return keras.layers.Dropout(layer[1])
     elif layer[0] == "fc":
@@ -235,18 +168,11 @@ def caffe_to_keras(layer, rs = False):
         units=layer[1], activation = layer[2])
     elif layer[0] == "terminate":
          return keras.layers.Dense(units = 1, activation = "linear")
-     
-    #elif layer[0]== "pool":
-    #    return keras.layers.MaxPooling2D(
-    #    pool_size = (layer[1], layer[1]), 
-    #    strides = layer[2],
-    #    )
-    #elif layer[0] == "gap":
-    #    return keras.layers.GlobalAveragePooling2D()
     else:
         raise Exception
 
 def parse_network_structure(net):
+    '''Turns a list representation of an architecture into a list of Keras layers '''
     keras.backend.clear_session()
 
     structure = []
