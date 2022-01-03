@@ -2,7 +2,6 @@ import math
 import netparser
 import numpy as np
 import state_enumerator as se
-from operator import itemgetter
 
 
 '''
