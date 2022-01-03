@@ -3,11 +3,6 @@ MODEL_NAME = 'AutoML3'
 # Number of output neurons
 NUM_CLASSES = 1                                                                    # Number of output neurons
 
-#Final Image Size
-IMAGE_HEIGHT = 1                                                                   # Final Image Height NOTE: code only supports square images right now o_O
-IMAGE_WIDTH = 1                                                                    # Final Image Width  NOTE: code only supports square images right now o_O
-#not sure if needed
-
 #Batch Queue parameters
 TRAIN_BATCH_SIZE = 500                                                              # Batch size for training
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 45000                                            # Number of training examples
@@ -33,19 +28,8 @@ INITIAL_LEARNING_RATES = [0.001 * (0.4**i) for i in range(5)]                   
 ACC_THRESHOLD = 0.15                                                                # Model must achieve greater than ACC_THRESHOLD performance in NUM_ITER_TO_TRY_LR or it is killed and next initial learning rate is tried.
 LEARNING_RATE_DECAY_FACTOR = 0.2                                                    # Learning rate decay factor.
 NUM_EPOCHS_PER_DECAY = 5                                                            # Epochs after which learning rate decays.
-LR_POLICY = "step"                                                                  # Caffe Default
 
-# Print every?
+
+# Print
 DISPLAY_ITER = 100                                                                  # Number of batches to print between
 SAVE_EPOCHS = 10                                                                     # Number of epochs between snapshots
-
-#MIRROR = True                                                                       # Randomly mirror images during training
-#CROP = False                                                                        # Randomly Crop input images to final image size
-#GCN_APPROX = False                                                                  # subtract 128 and scale
-#Train files
-TRAIN_FILE = '/path/to/train/lmdb'                                                  # Path to training lmdb file -- YOU NEED TO CHANGE THIS
-VAL_FILE = '/path/to/train/lmdb'                                                    # Path to validation lmdb file -- YOU NEED TO CHANGE THIS
-
-
-# For training caffe checkpoints
-CHECKPOINT_DIR = 'trained_models/' + MODEL_NAME                                     # Path to where model snapshots are saved
