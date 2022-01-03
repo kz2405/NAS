@@ -1,7 +1,6 @@
 import math
 import netparser
 import numpy as np
-from operator import itemgetter
 
 
 '''
