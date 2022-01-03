@@ -150,7 +150,7 @@ def parse(rule, text):
 
 
 
-def caffe_to_keras(layer, rs = False):
+def list_to_keras(layer, rs = False):
     ''' Turns a list representation of a layer into a Keras layer'''
     if layer[0] == "lstm":
         return keras.layers.LSTM(int(layer[1]), activation = layer[2], return_sequences = rs)
@@ -178,7 +178,7 @@ def parse_network_structure(net):
     structure = []
     rs = False
     for layer_dict in net[::-1]:
-        new_layer =caffe_to_keras(layer_dict, rs)
+        new_layer =list_to_keras(layer_dict, rs)
         if layer_dict[0] in ['lstm', 'bilstm', 'rnn','gru']:
             rs = True
         structure.append(new_layer)
