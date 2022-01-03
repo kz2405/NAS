@@ -23,6 +23,6 @@ epsilon_schedule = [[1.0, 1000],
                     [0.2, 100],
                     [0.1, 100]]
 # Q-Learning Hyper parameters
-learning_rate = 0.1                    # Q Learning learning rate (alpha from Equation 3)
+learning_rate = 0.01                    # Q Learning learning rate (alpha from Equation 3)
 discount_factor = 1.0                   # Q Learning discount factor (gamma from Equation 3)
 replay_number = 128                     # Number trajectories to sample for replay at each iteration
